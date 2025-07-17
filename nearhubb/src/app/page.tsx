@@ -4,40 +4,54 @@ import { useQuery } from '@apollo/client';
 import { GET_SALONS } from '@/graphql/queries';
 import client from '@/lib/apollo-client';
 
+interface Salon {
+  slug: string;
+  title: string;
+  salonFields: {
+    city: string;
+    serviceType: string;
+    address: string;
+    phoneNumber: string;
+    whatsappNumber?: string;
+  };
+}
+
 export default function HomePage() {
-  const { data, loading, error } = useQuery(GET_SALONS, { client });
+  const { data, loading, error } = useQuery<{ salons: { nodes: Salon[] } }>(GET_SALONS, {
+    client,
+  });
 
   return (
-    <div>
+    <div className="bg-gray-900 text-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-20 px-6 text-center">
+      <section className="bg-gradient-to-r  bg-black text-white py-20 px-6 text-center">
         <h1 className="text-4xl font-bold mb-4">Book Beauty Services Near You</h1>
         <p className="text-lg mb-6">Find top-rated salons in your area and book instantly</p>
-        <div className="flex justify-center gap-2 max-w-xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-center gap-2 max-w-xl mx-auto">
           <input
             type="text"
             placeholder="Location"
-            className="px-4 py-2 w-full rounded-l-md text-black"
+            className="px-4 py-2 w-full md:w-auto rounded-md bg-white text-black"
           />
           <input
             type="text"
             placeholder="Service (e.g., Haircut)"
-            className="px-4 py-2 w-full text-black"
+            className="px-4 py-2 w-full md:w-auto bg-white text-black"
           />
-          <button className="bg-black text-white px-6 py-2 rounded-r-md hover:bg-gray-800">
+          <button className="bg-white text-black px-6 py-2 rounded-md hover:bg-gray-300">
             Search
           </button>
         </div>
       </section>
 
       {/* Popular Categories */}
-      <section className="py-12 px-6 bg-gray-100">
+      <section className="py-12 px-6 bg-gray-800">
         <h2 className="text-2xl font-bold text-center mb-6">Popular Categories</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {['Hair', 'Nails', 'Spa', 'Massage'].map((cat) => (
             <div
               key={cat}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md text-center"
+              className="bg-gray-700 p-4 rounded-lg shadow hover:shadow-md text-center"
             >
               <span className="block text-lg font-medium">{cat}</span>
             </div>
@@ -46,7 +60,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Salons */}
-      <section className="py-12 px-6">
+      <section className="py-12 px-6 bg-gray-900">
         <h2 className="text-2xl font-bold text-center mb-6">Featured Salons</h2>
         {loading ? (
           <p className="text-center">Loading salons...</p>
@@ -54,17 +68,17 @@ export default function HomePage() {
           <p className="text-center text-red-500">Error loading salons.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {data?.salons?.nodes?.map((salon: any) => (
+            {data?.salons?.nodes?.map((salon) => (
               <div
                 key={salon.slug}
-                className="border rounded-lg p-4 shadow hover:shadow-md"
+                className="bg-gray-800 rounded-lg p-4 shadow hover:shadow-md"
               >
                 <h3 className="text-xl font-semibold">{salon.title}</h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-400">
                   {salon.salonFields.city} - {salon.salonFields.serviceType}
                 </p>
-                <p>{salon.salonFields.address}</p>
-                <p>📞 {salon.salonFields.phoneNumber}</p>
+                <p className="text-gray-300">{salon.salonFields.address}</p>
+                <p className="text-gray-300">📞 {salon.salonFields.phoneNumber}</p>
               </div>
             ))}
           </div>
@@ -72,7 +86,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-12 px-6 bg-gray-100">
+      <section className="py-12 px-6 bg-gray-800">
         <h2 className="text-2xl font-bold text-center mb-6">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-5xl mx-auto">
           <div>
