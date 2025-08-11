@@ -1,91 +1,64 @@
-// 'use client' not required for server components
-import { GET_SALONS } from '@/graphql/queries';
-import  client  from '@/lib/apollo-client';
+// src/app/salons/page.tsx
+"use client";
 
-export async function generateStaticParams() {
-  const res = await client.query({
-    query: GET_SALONS,
-  });
+import { useQuery, gql } from "@apollo/client";
+import client from "@/lib/apollo-client";
 
-  return res.data.salons.nodes.map((salon: any) => ({ slug: salon.slug }));
-}
+type Salon = {
+  slug: string;
+  title: string;
+  salonFields: {
+    city: string;
+    serviceType: string;
+    address: string;
+    phoneNumber: string;
+    whatsappNumber: string;
+  };
+};
 
-export default async function SalonPage({ params }: { params: { slug: string } }) {
-  const { data } = await client.query({
-    query: GET_SALONS,
-    variables: { slug: params.slug },
-  });
+type SalonsData = {
+  salons: {
+    nodes: Salon[];
+  };
+};
 
-  const salon = data?.salon;
+const GET_SALONS = gql`
+  query GetSalons {
+    salons {
+      nodes {
+        slug
+        title
+        salonFields {
+          city
+          serviceType
+          address
+          phoneNumber
+          whatsappNumber
+        }
+      }
+    }
+  }
+`;
+
+export default function SalonsPage() {
+  const { data, loading, error } = useQuery<SalonsData>(GET_SALONS, { client });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error loading salons.</p>;
 
   return (
-    <div className="bg-zinc-900 text-white min-h-screen p-6">
-      <h1 className="text-3xl font-bold">{salon.title}</h1>
-      <p className="text-gray-400 italic">{salon.salonFields.reviewSnippet}</p>
-      <img src={salon.salonFields.salonPhoto.sourceUrl} alt="Salon" className="rounded my-4" />
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <h2 className="font-semibold">📍 Address</h2>
-          <p>{salon.salonFields.address}</p>
-
-          <h2 className="font-semibold mt-4">📞 Phone</h2>
-          <p>{salon.salonFields.phoneNumber}</p>
-
-          <h2 className="font-semibold mt-4">🕒 Opening Hours</h2>
-          <ul>
-            {salon.salonFields.openingHours.map((day: any, i: number) => (
-              <li key={i}>{day.day}: {day.time}</li>
-            ))}
-          </ul>
-
-          <a
-            href={salon.salonFields.appointmentUrl}
-            target="_blank"
-            className="mt-6 inline-block bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600"
-          >
-            Book Appointment
-          </a>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Salon Listings</h1>
+      {data?.salons.nodes.map((salon) => (
+        <div key={salon.slug} className="border p-4 mb-4 rounded-lg shadow">
+          <h2 className="text-xl font-semibold">{salon.title}</h2>
+          <p>City: {salon.salonFields.city}</p>
+          <p>Service: {salon.salonFields.serviceType}</p>
+          <p>Address: {salon.salonFields.address}</p>
+          <p>Phone: {salon.salonFields.phoneNumber}</p>
+          <p>WhatsApp: {salon.salonFields.whatsappNumber}</p>
         </div>
-
-        <div>
-          <h2 className="font-semibold">✨ Services</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {salon.salonFields.servicePhoto.map((img: any, i: number) => (
-              <img key={i} src={img.sourceUrl} className="rounded" />
-            ))}
-          </div>
-
-          <h2 className="font-semibold mt-4">🏆 Business USP</h2>
-          <ul className="list-disc ml-5">
-            {salon.salonFields.businessUsp.map((usp: string, i: number) => (
-              <li key={i}>{usp}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* FAQs */}
-      <div className="mt-10">
-        <h2 className="text-xl font-bold">❓ FAQs</h2>
-        {salon.salonFields.faqs.map((faq: any, i: number) => (
-          <div key={i} className="mt-2">
-            <p className="font-semibold">{faq.question}</p>
-            <p>{faq.answer}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Reviews */}
-      <div className="mt-10">
-        <h2 className="text-xl font-bold">⭐ Reviews</h2>
-        {salon.salonFields.reviewBody.map((r: any, i: number) => (
-          <div key={i} className="border-b border-gray-700 py-2">
-            <p className="font-semibold">{r.name} - {r.rating}/5</p>
-            <p>{r.review}</p>
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
